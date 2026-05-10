@@ -229,7 +229,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 <!-- TEMPLATES -->
 <div class="panel" id="p-templates">
   <div class="panel-header">Templates</div>
-  <p style="font-size:13px;color:var(--text-dim);margin-bottom:16px">Save any day's schedule items as a template, then stamp it onto a date.<br><span style="font-size:11px;color:var(--text-faint)">Templates save and apply schedule items only. All-day items are not affected. Applying a template fully overwrites existing schedule items on that date.</span></p>
+  <p style="font-size:13px;color:var(--text-dim);margin-bottom:16px">Save any day's schedule items as a template, then stamp it onto a date.<br><span style="font-size:11px;color:var(--text-faint)">Templates save and apply schedule items only. All-day items are not affected. Applying a template merges items with any existing schedule on that date.</span></p>
   <div style="display:flex;gap:8px;margin-bottom:16px">
     <input type="date" id="tpl-src" style="flex:1;background:var(--bg);border:1px solid var(--text-faint);color:var(--text);font-family:var(--mono);font-size:13px;padding:8px 10px;border-radius:8px;outline:none">
     <button class="btn btn-accent" id="tpl-save-btn">Save as Template</button>
@@ -283,7 +283,13 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
   <div class="modal-btns"><button class="btn btn-outline btn-block" id="tn-x">Cancel</button><button class="btn btn-green btn-block" id="tn-ok">Save</button></div>
 </div></div>
 
-<!-- (template apply uses inline date picker, no modal) -->
+<!-- Template Apply -->
+<div class="modal-bg" id="m-tapply"><div class="modal">
+  <h2 id="ta-title">Apply Template</h2>
+  <p style="font-size:12px;color:var(--text-dim)">Template items will be added alongside existing schedule items.</p>
+  <input type="date" id="ta-date">
+  <div class="modal-btns"><button class="btn btn-outline btn-block" id="ta-x">Cancel</button><button class="btn btn-accent btn-block" id="ta-ok">Apply</button></div>
+</div></div>
 
 <!-- Multi-date Import -->
 <div class="modal-bg" id="m-mimp"><div class="modal">
@@ -350,6 +356,7 @@ let curDate=todayStr();
 let curTab=0;
 let addAuto=false,addDayM=false,addCol='none';
 let editId=null,editDate=null,editAuto=false,editDayM=false,editCol='none';
+let applyTplIdx=null;
 
 // AUTO-SCHEDULE
 function autoSched(items){
@@ -637,26 +644,26 @@ function renderTpl(){
   if(!store.templates.length){list.innerHTML='<div class="no-items">No templates saved yet.</div>';return}
   store.templates.forEach((tpl,i)=>{
     const card=document.createElement('div');card.className='tpl-card';
-    card.innerHTML=`<div class="tpl-hdr"><span class="tpl-nm">${esc(tpl.name)}</span><span class="tpl-cnt">${tpl.items.length} schedule item${tpl.items.length!==1?'s':''}</span></div><div class="tpl-items">${tpl.items.slice(0,4).map(t=>`<div class="tpl-it">${t.time?f12(t.time)+' ':''}${esc(t.name)}${t.dur?' ('+fmtDur(t.dur)+')':''}</div>`).join('')}${tpl.items.length>4?`<div class="tpl-it" style="color:var(--text-faint)">+${tpl.items.length-4} more</div>`:''}</div><div style="display:flex;gap:8px;margin-top:10px"><div style="position:relative"><button class="btn btn-sm btn-accent ta-btn" data-i="${i}">Apply to Date</button><input type="date" class="ta-date-pick" data-i="${i}" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer"></div><button class="btn btn-sm btn-danger td-btn" data-i="${i}">Delete</button></div>`;
+    card.innerHTML=`<div class="tpl-hdr"><span class="tpl-nm">${esc(tpl.name)}</span><span class="tpl-cnt">${tpl.items.length} schedule item${tpl.items.length!==1?'s':''}</span></div><div class="tpl-items">${tpl.items.slice(0,4).map(t=>`<div class="tpl-it">${t.time?f12(t.time)+' ':''}${esc(t.name)}${t.dur?' ('+fmtDur(t.dur)+')':''}</div>`).join('')}${tpl.items.length>4?`<div class="tpl-it" style="color:var(--text-faint)">+${tpl.items.length-4} more</div>`:''}</div><div style="display:flex;gap:8px;margin-top:10px"><button class="btn btn-sm btn-accent ta-btn" data-i="${i}">Apply to Date</button><button class="btn btn-sm btn-danger td-btn" data-i="${i}">Delete</button></div>`;
     list.appendChild(card);
   });
-  list.querySelectorAll('.ta-date-pick').forEach(inp=>{
-    inp.addEventListener('change',()=>{
-      const idx=parseInt(inp.dataset.i);const tpl=store.templates[idx];if(!tpl)return;
-      const ds=inp.value;if(!ds)return;
-      const existing=getDay(ds);
-      const existingSched=existing.filter(x=>!x.dayItem);
-      const existingDay=existing.filter(x=>x.dayItem);
-      const ni=tpl.items.map(t=>({id:gid(),name:t.name,time:t.time,dur:t.dur,color:t.color||'none',dayItem:false,autoTime:!!t.autoTime,done:false}));
-      setDay(ds,autoSched([...existingDay,...ni]));
-      const overwritten=existingSched.length;
-      if(overwritten)toast('Applied to '+fDate(ds)+' — '+overwritten+' schedule item'+(overwritten>1?'s':'')+' overwritten');
-      else toast('Applied to '+fDate(ds));
-      inp.value='';
-    });
-  });
+  list.querySelectorAll('.ta-btn').forEach(b=>b.addEventListener('click',e=>{
+    e.stopPropagation();applyTplIdx=parseInt(b.dataset.i);
+    document.getElementById('ta-title').textContent='Apply: '+store.templates[applyTplIdx].name;
+    document.getElementById('ta-date').value=curDate;showM('m-tapply');
+  }));
   list.querySelectorAll('.td-btn').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();const i=parseInt(b.dataset.i);if(confirm('Delete "'+store.templates[i].name+'"?')){store.templates.splice(i,1);save();renderTpl();toast('Deleted')}}));
 }
+
+document.getElementById('ta-x').addEventListener('click',()=>hideM('m-tapply'));
+document.getElementById('ta-ok').addEventListener('click',()=>{
+  if(applyTplIdx===null)return;const tpl=store.templates[applyTplIdx];
+  const ds=document.getElementById('ta-date').value;if(!ds){toast('Pick a date');return}
+  const existing=getDay(ds);
+  const ni=tpl.items.map(t=>({id:gid(),name:t.name,time:t.time,dur:t.dur,color:t.color||'none',dayItem:false,autoTime:!!t.autoTime,done:false}));
+  setDay(ds,autoSched([...existing,...ni]));hideM('m-tapply');
+  toast('Applied '+tpl.items.length+' item'+(tpl.items.length>1?'s':'')+' to '+fDate(ds));
+});
 
 document.getElementById('tpl-save-btn').addEventListener('click',()=>{
   const src=document.getElementById('tpl-src').value||curDate;
