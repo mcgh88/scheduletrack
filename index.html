@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -18,51 +17,51 @@
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);-webkit-tap-highlight-color:transparent;overflow:hidden}
 
 /* TAB BAR */
-.tab-bar{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(–surface);border-top:1px solid rgba(255,255,255,.06);z-index:100;padding-bottom:env(safe-area-inset-bottom)}
-.tab-btn{flex:1;padding:10px 0 8px;border:none;background:none;color:var(–text-dim);font-family:var(–sans);font-size:10px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;transition:color .2s}
-.tab-btn.active{color:var(–accent)}
+.tab-bar{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--surface);border-top:1px solid rgba(255,255,255,.06);z-index:100;padding-bottom:env(safe-area-inset-bottom)}
+.tab-btn{flex:1;padding:10px 0 8px;border:none;background:none;color:var(--text-dim);font-family:var(--sans);font-size:10px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;transition:color .2s}
+.tab-btn.active{color:var(--accent)}
 .tab-btn svg{width:20px;height:20px}
 
 /* PANELS */
 .panel{position:absolute;top:0;left:0;right:0;bottom:60px;padding:20px 16px;overflow-y:auto;overflow-x:hidden;display:none;-webkit-overflow-scrolling:touch}
 .panel.active{display:block}
-.panel-header{font-family:var(–mono);font-size:22px;font-weight:700;margin-bottom:20px;letter-spacing:-.5px}
+.panel-header{font-family:var(--mono);font-size:22px;font-weight:700;margin-bottom:20px;letter-spacing:-.5px}
 
 /* DATE NAV */
 .date-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
-.date-nav button{background:var(–surface2);border:none;color:var(–text);padding:8px 12px;border-radius:16px;font-size:13px;font-family:var(–mono);font-weight:600;cursor:pointer;white-space:nowrap}
-.date-nav .date-label{font-family:var(–mono);font-size:16px;font-weight:600;cursor:pointer}
-.date-nav .date-label.today-hl{color:var(–accent)}
+.date-nav button{background:var(--surface2);border:none;color:var(--text);padding:8px 12px;border-radius:16px;font-size:13px;font-family:var(--mono);font-weight:600;cursor:pointer;white-space:nowrap}
+.date-nav .date-label{font-family:var(--mono);font-size:16px;font-weight:600;cursor:pointer}
+.date-nav .date-label.today-hl{color:var(--accent)}
 
 /* BUTTONS */
-.btn{padding:10px 20px;border:none;border-radius:8px;font-family:var(–sans);font-size:14px;font-weight:600;cursor:pointer;transition:transform .1s}
+.btn{padding:10px 20px;border:none;border-radius:8px;font-family:var(--sans);font-size:14px;font-weight:600;cursor:pointer;transition:transform .1s}
 .btn:active{transform:scale(.97)}
-.btn-accent{background:var(–accent);color:#fff}
-.btn-green{background:var(–green);color:var(–bg)}
-.btn-outline{background:none;border:1px solid var(–text-faint);color:var(–text)}
+.btn-accent{background:var(--accent);color:#fff}
+.btn-green{background:var(--green);color:var(--bg)}
+.btn-outline{background:none;border:1px solid var(--text-faint);color:var(--text)}
 .btn-sm{padding:8px 14px;font-size:12px}
 .btn-block{width:100%}
-.btn-danger{background:rgba(233,69,96,.15);color:var(–accent);border:1px solid var(–accent)}
+.btn-danger{background:rgba(233,69,96,.15);color:var(--accent);border:1px solid var(--accent)}
 
 /* ADD ITEM AREA */
-.add-area{background:var(–surface);border-radius:var(–radius);padding:14px;margin-bottom:16px}
+.add-area{background:var(--surface);border-radius:var(--radius);padding:14px;margin-bottom:16px}
 .aa-row{display:flex;gap:8px;margin-bottom:8px;align-items:center}
 .aa-row:last-child{margin-bottom:0}
-.aa-row input,.aa-row select{background:var(–bg);border:1px solid var(–text-faint);color:var(–text);font-family:var(–mono);font-size:13px;padding:8px 10px;border-radius:8px;outline:none;min-width:0}
-.aa-row input:focus{border-color:var(–accent)}
-.aa-row input::placeholder{color:var(–text-faint)}
+.aa-row input,.aa-row select{background:var(--bg);border:1px solid var(--text-faint);color:var(--text);font-family:var(--mono);font-size:13px;padding:8px 10px;border-radius:8px;outline:none;min-width:0}
+.aa-row input:focus{border-color:var(--accent)}
+.aa-row input::placeholder{color:var(--text-faint)}
 .aa-row input:disabled{opacity:.3}
 .aa-name{flex:1}
 .aa-time{width:100px}
 .aa-dur{width:80px}
-.add-btn{width:42px;height:38px;border-radius:8px;background:var(–accent);border:none;color:#fff;font-size:22px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.add-btn{width:42px;height:38px;border-radius:8px;background:var(--accent);border:none;color:#fff;font-size:22px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}
 .add-btn:active{transform:scale(.95)}
 
 /* TOGGLE */
-.tog-wrap{display:flex;align-items:center;gap:6px;font-family:var(–mono);font-size:11px;color:var(–text-dim);flex-shrink:0}
-.tog{width:36px;height:20px;border-radius:10px;background:var(–surface2);position:relative;cursor:pointer;transition:background .2s;flex-shrink:0}
-.tog.on{background:var(–green)}
-.tog::after{content:’’;position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .2s}
+.tog-wrap{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:var(--text-dim);flex-shrink:0}
+.tog{width:36px;height:20px;border-radius:10px;background:var(--surface2);position:relative;cursor:pointer;transition:background .2s;flex-shrink:0}
+.tog.on{background:var(--green)}
+.tog::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .2s}
 .tog.on::after{transform:translateX(16px)}
 
 /* COLOR PICKER */
@@ -70,7 +69,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .csw{width:22px;height:22px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:transform .1s,border-color .15s;flex-shrink:0}
 .csw:hover{transform:scale(1.15)}
 .csw.active{border-color:#fff}
-.csw.sn{border:2px solid var(–text-faint)}
+.csw.sn{border:2px solid var(--text-faint)}
 
 /* DAY ITEMS */
 .day-actions{display:flex;gap:8px;margin-bottom:12px}
@@ -81,59 +80,59 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .di-card.done .di-nm{text-decoration:line-through}
 .di-drag{cursor:grab;padding:2px;display:flex;align-items:center;touch-action:none;flex-shrink:0;opacity:.6}
 .di-drag svg{width:14px;height:14px}
-.di-nm{flex:1;font-family:var(–mono);font-size:13px;word-break:break-word}
+.di-nm{flex:1;font-family:var(--mono);font-size:13px;word-break:break-word}
 .chk{width:28px;height:28px;border:1px solid rgba(255,255,255,.25);border-radius:6px;background:transparent;font-size:14px;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.chk.on{background:var(–green);color:var(–bg);border-color:var(–green)}
+.chk.on{background:var(--green);color:var(--bg);border-color:var(--green)}
 
 /* TIMELINE */
-.tl-divider{font-family:var(–mono);font-size:10px;color:var(–text-faint);margin:12px 0 8px;padding:0 4px;text-transform:uppercase;letter-spacing:1px}
+.tl-divider{font-family:var(--mono);font-size:10px;color:var(--text-faint);margin:12px 0 8px;padding:0 4px;text-transform:uppercase;letter-spacing:1px}
 .tb{display:flex;align-items:stretch;gap:10px;padding:10px 12px;border-radius:8px;margin-bottom:6px;font-size:14px;position:relative}
 .tb.done{opacity:.5}
 .tb.done .tb-nm{text-decoration:line-through}
 .tb-drag{cursor:grab;padding:2px;display:flex;align-items:center;touch-action:none;flex-shrink:0;opacity:.6}
 .tb-drag svg{width:14px;height:14px}
-.tb-time{font-family:var(–mono);font-size:11px;font-weight:600;min-width:52px;padding-top:2px;display:flex;flex-direction:column;gap:2px}
+.tb-time{font-family:var(--mono);font-size:11px;font-weight:600;min-width:52px;padding-top:2px;display:flex;flex-direction:column;gap:2px}
 .tb-time .tb-end{font-size:10px;opacity:.6}
 .tb-time .tb-al{font-size:9px;opacity:.5}
 .tb-body{flex:1;min-width:0}
-.tb-nm{font-family:var(–mono);font-size:13px;word-break:break-word}
-.tb-dur{font-size:11px;opacity:.6;margin-top:2px;font-family:var(–mono)}
+.tb-nm{font-family:var(--mono);font-size:13px;word-break:break-word}
+.tb-dur{font-size:11px;opacity:.6;margin-top:2px;font-family:var(--mono)}
 
 /* COLOR POPUP */
-.cp-trigger{width:26px;height:26px;border-radius:50%;border:2px solid var(–text-faint);cursor:pointer;flex-shrink:0;position:relative}
-.cp-popup{position:absolute;bottom:calc(100% + 8px);left:0;background:var(–surface);border:1px solid var(–text-faint);border-radius:10px;padding:10px;display:none;gap:6px;flex-wrap:wrap;width:180px;z-index:50;box-shadow:0 4px 20px rgba(0,0,0,.4)}
+.cp-trigger{width:26px;height:26px;border-radius:50%;border:2px solid var(--text-faint);cursor:pointer;flex-shrink:0;position:relative}
+.cp-popup{position:absolute;bottom:calc(100% + 8px);left:0;background:var(--surface);border:1px solid var(--text-faint);border-radius:10px;padding:10px;display:none;gap:6px;flex-wrap:wrap;width:180px;z-index:50;box-shadow:0 4px 20px rgba(0,0,0,.4)}
 .cp-popup.open{display:flex}
 
 /* DURATION INPUT */
-.aa-dur-input{background:var(–bg);border:1px solid var(–text-faint);color:var(–text);font-family:var(–mono);font-size:14px;padding:8px 10px;border-radius:8px;outline:none;width:100px;text-align:center}
+.aa-dur-input{background:var(--bg);border:1px solid var(--text-faint);color:var(--text);font-family:var(--mono);font-size:14px;padding:8px 10px;border-radius:8px;outline:none;width:100px;text-align:center}
 .aa-dur-input:focus{border-color:#3b82f6}
 .aa-dur-input:disabled{opacity:.3}
 
 /* SECTION LABELS */
-.section-label{font-family:var(–mono);font-size:10px;color:var(–text-faint);text-transform:uppercase;letter-spacing:1.5px;padding:0 4px;margin-bottom:6px}
+.section-label{font-family:var(--mono);font-size:10px;color:var(--text-faint);text-transform:uppercase;letter-spacing:1.5px;padding:0 4px;margin-bottom:6px}
 .section-divider{border:none;border-top:1px solid rgba(255,255,255,.06);margin:12px 0 8px}
-.clr-add-btn{background:none;border:1px solid var(–text-faint);color:var(–text-faint);font-family:var(–mono);font-size:11px;padding:4px 10px;border-radius:6px;cursor:pointer}
-.no-items{text-align:center;padding:40px 20px;color:var(–text-dim);font-size:14px}
+.clr-add-btn{background:none;border:1px solid var(--text-faint);color:var(--text-faint);font-family:var(--mono);font-size:11px;padding:4px 10px;border-radius:6px;cursor:pointer}
+.no-items{text-align:center;padding:40px 20px;color:var(--text-dim);font-size:14px}
 .day-back{min-height:200px;cursor:pointer}
 
 /* WEEK */
 .wk-grid{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
-.wk-card{background:var(–surface);border-radius:8px;padding:12px 14px;cursor:pointer;transition:opacity .15s}
+.wk-card{background:var(--surface);border-radius:8px;padding:12px 14px;cursor:pointer;transition:opacity .15s}
 .wk-card:active{opacity:.85}
 .wk-card.today{border:3px solid #3b82f6}
 .wk-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
-.wk-day{font-family:var(–mono);font-size:14px;font-weight:700}
-.wk-cnt{font-family:var(–mono);font-size:11px;color:var(–text-dim)}
+.wk-day{font-family:var(--mono);font-size:14px;font-weight:700}
+.wk-cnt{font-family:var(--mono);font-size:11px;color:var(--text-dim)}
 .wk-items{display:flex;flex-direction:column;gap:3px}
-.wk-it{font-family:var(–mono);font-size:11px;color:var(–text-dim);padding:3px 6px;border-radius:4px;background:var(–bg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wk-it{font-family:var(--mono);font-size:11px;color:var(--text-dim);padding:3px 6px;border-radius:4px;background:var(--bg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .wk-it.wdone{text-decoration:line-through;opacity:.5}
 
 /* MONTH */
 .mo-section{margin-bottom:24px}
-.mo-title{font-family:var(–mono);font-size:18px;font-weight:700;margin-bottom:10px;position:sticky;top:0;background:var(–bg);z-index:10;padding:8px 4px}
+.mo-title{font-family:var(--mono);font-size:18px;font-weight:700;margin-bottom:10px;position:sticky;top:0;background:var(--bg);z-index:10;padding:8px 4px}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:8px}
-.cal-hdr{text-align:center;font-family:var(–mono);font-size:11px;color:var(–text-faint);padding:4px 0;font-weight:600}
-.cal-c{min-height:60px;border-radius:6px;display:flex;flex-direction:column;align-items:flex-start;font-family:var(–mono);font-size:12px;font-weight:600;cursor:pointer;padding:4px 5px;background:var(–surface);overflow:hidden}
+.cal-hdr{text-align:center;font-family:var(--mono);font-size:11px;color:var(--text-faint);padding:4px 0;font-weight:600}
+.cal-c{min-height:60px;border-radius:6px;display:flex;flex-direction:column;align-items:flex-start;font-family:var(--mono);font-size:12px;font-weight:600;cursor:pointer;padding:4px 5px;background:var(--surface);overflow:hidden}
 .cal-c.empty{background:none;cursor:default}
 .cal-c.today-c{border:3px solid #3b82f6}
 .cal-c.today-c.today-blue{border-color:#fff}
@@ -143,44 +142,43 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .cal-c .cal-more{font-size:7px;opacity:.5;margin-top:1px}
 
 /* TEMPLATES */
-.tpl-card{background:var(–surface);border-radius:var(–radius);padding:14px 16px;margin-bottom:8px}
+.tpl-card{background:var(--surface);border-radius:var(--radius);padding:14px 16px;margin-bottom:8px}
 .tpl-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
-.tpl-nm{font-family:var(–mono);font-size:14px;font-weight:700}
-.tpl-cnt{font-family:var(–mono);font-size:11px;color:var(–text-dim)}
+.tpl-nm{font-family:var(--mono);font-size:14px;font-weight:700}
+.tpl-cnt{font-family:var(--mono);font-size:11px;color:var(--text-dim)}
 .tpl-items{display:flex;flex-direction:column;gap:3px}
-.tpl-it{font-family:var(–mono);font-size:11px;color:var(–text-dim)}
+.tpl-it{font-family:var(--mono);font-size:11px;color:var(--text-dim)}
 
 /* SETTINGS */
-.sg{background:var(–surface);border-radius:var(–radius);padding:16px;margin-bottom:12px}
-.sg h3{font-family:var(–mono);font-size:14px;color:var(–text-dim);margin-bottom:12px}
+.sg{background:var(--surface);border-radius:var(--radius);padding:16px;margin-bottom:12px}
+.sg h3{font-family:var(--mono);font-size:14px;color:var(--text-dim);margin-bottom:12px}
 .sr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .sr:last-child{margin-bottom:0}
 .sr label{font-size:14px}
-.sr input{background:var(–bg);border:1px solid var(–text-faint);color:var(–text);font-family:var(–mono);font-size:14px;padding:8px 10px;border-radius:8px;outline:none;width:80px;text-align:right}
-.sr input:focus{border-color:var(–accent)}
+.sr input{background:var(--bg);border:1px solid var(--text-faint);color:var(--text);font-family:var(--mono);font-size:14px;padding:8px 10px;border-radius:8px;outline:none;width:80px;text-align:right}
+.sr input:focus{border-color:var(--accent)}
 
 /* MODAL */
 .modal-bg{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);z-index:300;display:none;align-items:center;justify-content:center;padding:20px}
 .modal-bg.show{display:flex}
-.modal{background:var(–surface);border-radius:var(–radius);padding:24px;width:100%;max-width:400px;max-height:80vh;overflow-y:auto}
-.modal h2{font-family:var(–mono);font-size:18px;font-weight:700;margin-bottom:12px}
-.modal p{font-size:13px;color:var(–text-dim);margin-bottom:12px;line-height:1.5}
+.modal{background:var(--surface);border-radius:var(--radius);padding:24px;width:100%;max-width:400px;max-height:80vh;overflow-y:auto}
+.modal h2{font-family:var(--mono);font-size:18px;font-weight:700;margin-bottom:12px}
+.modal p{font-size:13px;color:var(--text-dim);margin-bottom:12px;line-height:1.5}
 .modal-btns{display:flex;gap:8px;margin-top:16px}
-.modal input,.modal select,.modal textarea{width:100%;background:var(–bg);border:1px solid var(–text-faint);color:var(–text);font-family:var(–mono);font-size:13px;padding:10px 12px;border-radius:8px;outline:none;margin-bottom:10px}
-.modal input:focus,.modal textarea:focus{border-color:var(–accent)}
+.modal input,.modal select,.modal textarea{width:100%;background:var(--bg);border:1px solid var(--text-faint);color:var(--text);font-family:var(--mono);font-size:13px;padding:10px 12px;border-radius:8px;outline:none;margin-bottom:10px}
+.modal input:focus,.modal textarea:focus{border-color:var(--accent)}
 .modal input:disabled{opacity:.3}
-.modal label{font-size:13px;color:var(–text-dim);display:block;margin-bottom:4px;font-family:var(–mono)}
+.modal label{font-size:13px;color:var(--text-dim);display:block;margin-bottom:4px;font-family:var(--mono)}
 .modal textarea{min-height:120px;resize:vertical}
-.modal textarea::placeholder{color:var(–text-faint)}
+.modal textarea::placeholder{color:var(--text-faint)}
 
 /* TOAST */
-.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(–surface2);color:var(–text);padding:10px 20px;border-radius:20px;font-size:13px;font-family:var(–sans);opacity:0;transition:opacity .3s;pointer-events:none;z-index:200;white-space:nowrap;max-width:90%}
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--surface2);color:var(--text);padding:10px 20px;border-radius:20px;font-size:13px;font-family:var(--sans);opacity:0;transition:opacity .3s;pointer-events:none;z-index:200;white-space:nowrap;max-width:90%}
 .toast.show{opacity:1}
 .panel::-webkit-scrollbar{width:4px}
-.panel::-webkit-scrollbar-thumb{background:var(–text-faint);border-radius:2px}
+.panel::-webkit-scrollbar-thumb{background:var(--text-faint);border-radius:2px}
 @media(max-width:380px){.tb-nm{font-size:12px}.cal-c{min-height:52px}.cal-c .cal-txt{font-size:7px}}
 </style>
-
 </head>
 <body>
 <nav class="tab-bar">
@@ -192,7 +190,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 </nav>
 
 <!-- DAY -->
-
 <div class="panel active" id="p-day">
   <div class="date-nav"><button id="prev-day">‹ Prev</button><span class="date-label today-hl" id="day-lbl"></span><button id="next-day">Next ›</button></div>
   <div class="day-actions"><button class="btn btn-sm btn-outline" id="d-import">Import</button></div>
@@ -219,18 +216,15 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 </div>
 
 <!-- WEEK -->
-
 <div class="panel" id="p-week">
   <div class="date-nav"><button id="prev-wk">‹ Prev</button><span class="date-label" id="wk-lbl"></span><button id="next-wk">Next ›</button></div>
   <div class="wk-grid" id="wk-grid"></div>
 </div>
 
 <!-- MONTH -->
-
 <div class="panel" id="p-month"><div id="mo-scroll"></div></div>
 
 <!-- TEMPLATES -->
-
 <div class="panel" id="p-templates">
   <div class="panel-header">Templates</div>
   <p style="font-size:13px;color:var(--text-dim);margin-bottom:16px">Save any day's schedule items as a template, then stamp it onto a date.<br><span style="font-size:11px;color:var(--text-faint)">Templates save and apply schedule items only. All-day items are not affected. Applying a template fully overwrites existing schedule items on that date.</span></p>
@@ -242,7 +236,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 </div>
 
 <!-- SETTINGS -->
-
 <div class="panel" id="p-settings">
   <div class="panel-header">Settings</div>
   <div class="sg"><h3>// holidays</h3><div class="sr"><label>Generate NV State Holidays</label><input type="number" id="hol-yr" min="2020" max="2100"></div><button class="btn btn-sm btn-green" id="gen-hol" style="margin-top:8px">Generate</button></div>
@@ -255,7 +248,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 <!-- MODALS -->
 
 <!-- Edit -->
-
 <div class="modal-bg" id="m-edit"><div class="modal">
   <h2>Edit Item</h2>
   <label>Name</label><input type="text" id="e-name" maxlength="80">
@@ -276,7 +268,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 </div></div>
 
 <!-- Day Import -->
-
 <div class="modal-bg" id="m-dimp"><div class="modal">
   <h2>Import Items</h2>
   <p>One item per line. Add time and duration with pipes:<br><code style="color:var(--accent)">name | 8:00 AM | 30m</code><br>Plain line = item with no time/duration, appended at end.</p>
@@ -285,20 +276,17 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 </div></div>
 
 <!-- Template Name -->
-
 <div class="modal-bg" id="m-tname"><div class="modal">
   <h2>Template Name</h2><input type="text" id="tn-input" placeholder="e.g. Workday, Weekend..." maxlength="40">
   <div class="modal-btns"><button class="btn btn-outline btn-block" id="tn-x">Cancel</button><button class="btn btn-green btn-block" id="tn-ok">Save</button></div>
 </div></div>
 
 <!-- Template Apply -->
-
 <div class="modal-bg" id="m-tapply"><div class="modal">
   <h2 id="ta-title">Apply Template</h2><p>Pick a date. Schedule items on that date will be replaced.</p><input type="date" id="ta-date">
 </div></div>
 
 <!-- Multi-date Import -->
-
 <div class="modal-bg" id="m-mimp"><div class="modal">
   <h2>Multi-Date Import</h2>
   <p>Lines: <code style="color:var(--accent)">date | item name</code><br>Dates: 5/15, 05/15, 5/15/2026, 2026-05-15</p>
@@ -754,6 +742,5 @@ document.getElementById('clr-btn').addEventListener('click',()=>{if(confirm('Del
 renderDay();
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
-
 </body>
 </html>
