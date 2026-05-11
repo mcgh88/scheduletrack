@@ -150,6 +150,8 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .tpl-cnt{font-family:var(--mono);font-size:11px;color:var(--text-dim)}
 .tpl-items{display:flex;flex-direction:column;gap:3px}
 .tpl-it{font-family:var(--mono);font-size:11px;color:var(--text-dim)}
+.ta-scope-btn{background:var(--bg);border:1px solid var(--text-faint) !important;color:var(--text-dim);transition:all .15s}
+.ta-scope-btn.active{background:var(--accent);border-color:var(--accent) !important;color:#fff}
 
 /* SETTINGS */
 .sg{background:var(--surface);border-radius:var(--radius);padding:16px;margin-bottom:12px}
@@ -194,7 +196,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 <!-- DAY -->
 <div class="panel active" id="p-day">
   <div class="date-nav"><button id="prev-day">‹ Prev</button><span class="date-label today-hl" id="day-lbl"></span><button id="next-day">Next ›</button></div>
-  <div class="day-actions"><button class="btn btn-sm btn-outline" id="d-import">Import</button></div>
+  <div class="day-actions"><button class="btn btn-sm btn-outline" id="d-import">Import</button><button class="btn btn-sm btn-danger" id="d-clear-day">Clear Day</button></div>
   <div class="add-area" id="add-area">
     <div class="aa-row"><input type="text" class="aa-name" id="a-name" placeholder="Item name..." maxlength="80"><button class="add-btn" id="a-btn">+</button><button class="clr-add-btn" id="a-clr">Clear</button></div>
     <div class="aa-row">
@@ -288,6 +290,13 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
   <h2 id="ta-title">Apply Template</h2>
   <p style="font-size:12px;color:var(--text-dim)">Template items will be added alongside existing schedule items.</p>
   <input type="date" id="ta-date">
+  <label style="font-size:13px;color:var(--text-dim);display:block;margin:8px 0 4px;font-family:var(--mono)">Apply scope</label>
+  <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">
+    <button class="btn btn-sm ta-scope-btn active" data-scope="single" style="font-size:11px">Single day</button>
+    <button class="btn btn-sm ta-scope-btn" data-scope="weekdays" style="font-size:11px">All weekdays (Mon–Fri)</button>
+    <button class="btn btn-sm ta-scope-btn" data-scope="week" style="font-size:11px">Whole week (Mon–Sun)</button>
+  </div>
+  <p id="ta-scope-hint" style="font-size:11px;color:var(--text-faint);margin-bottom:6px">Applies to the selected date only.</p>
   <div class="modal-btns"><button class="btn btn-outline btn-block" id="ta-x">Cancel</button><button class="btn btn-accent btn-block" id="ta-ok">Apply</button></div>
 </div></div>
 
@@ -573,6 +582,12 @@ document.getElementById('day-back').addEventListener('click',()=>switchTab('week
 
 // DAY IMPORT/EXPORT
 document.getElementById('d-import').addEventListener('click',()=>{document.getElementById('dimp-txt').value='';showM('m-dimp')});
+document.getElementById('d-clear-day').addEventListener('click',()=>{
+  const items=getDay(curDate);if(!items.length){toast('Day is already empty');return}
+  if(confirm('Clear all items (day items + schedule) for '+fDate(curDate)+'?')){
+    setDay(curDate,[]);renderDay();toast('Day cleared');
+  }
+});
 document.getElementById('dimp-x').addEventListener('click',()=>hideM('m-dimp'));
 document.getElementById('dimp-ok').addEventListener('click',()=>{
   const lines=document.getElementById('dimp-txt').value.split('\n');const items=getDay(curDate);let n=0;
@@ -656,13 +671,49 @@ function renderTpl(){
 }
 
 document.getElementById('ta-x').addEventListener('click',()=>hideM('m-tapply'));
+
+let taScope='single';
+document.querySelectorAll('.ta-scope-btn').forEach(b=>b.addEventListener('click',()=>{
+  taScope=b.dataset.scope;
+  document.querySelectorAll('.ta-scope-btn').forEach(x=>x.classList.toggle('active',x.dataset.scope===taScope));
+  const hint=document.getElementById('ta-scope-hint');
+  if(taScope==='single')hint.textContent='Applies to the selected date only.';
+  else if(taScope==='weekdays')hint.textContent='Applies to Mon–Fri of the selected date\'s week.';
+  else hint.textContent='Applies to Mon–Sun of the selected date\'s week.';
+}));
+
 document.getElementById('ta-ok').addEventListener('click',()=>{
   if(applyTplIdx===null)return;const tpl=store.templates[applyTplIdx];
   const ds=document.getElementById('ta-date').value;if(!ds){toast('Pick a date');return}
-  const existing=getDay(ds);
-  const ni=tpl.items.map(t=>({id:gid(),name:t.name,time:t.time,dur:t.dur,color:t.color||'none',dayItem:false,autoTime:!!t.autoTime,done:false}));
-  setDay(ds,autoSched([...existing,...ni]));hideM('m-tapply');
-  toast('Applied '+tpl.items.length+' item'+(tpl.items.length>1?'s':'')+' to '+fDate(ds));
+
+  // Compute target dates based on scope
+  let targets=[];
+  if(taScope==='single'){targets=[ds]}
+  else{
+    // Find Monday of the selected date's week
+    const sel=pDate(ds);const dow=sel.getDay();
+    const monOff=dow===0?-6:1-dow;
+    const mon=addDays(ds,monOff);
+    if(taScope==='weekdays'){for(let i=0;i<5;i++)targets.push(addDays(mon,i))}
+    else{for(let i=0;i<7;i++)targets.push(addDays(mon,i))}
+  }
+
+  let totalAdded=0;
+  targets.forEach(td=>{
+    const existing=getDay(td);
+    const ni=tpl.items.map(t=>({id:gid(),name:t.name,time:t.time,dur:t.dur,color:t.color||'none',dayItem:false,autoTime:!!t.autoTime,done:false}));
+    setDay(td,autoSched([...existing,...ni]));
+    totalAdded+=ni.length;
+  });
+
+  hideM('m-tapply');
+  if(targets.length===1)toast('Applied '+tpl.items.length+' item'+(tpl.items.length>1?'s':'')+' to '+fDate(ds));
+  else toast('Applied '+tpl.items.length+' item'+(tpl.items.length>1?'s':'')+' to '+targets.length+' days');
+
+  // Reset scope for next time
+  taScope='single';
+  document.querySelectorAll('.ta-scope-btn').forEach(x=>x.classList.toggle('active',x.dataset.scope==='single'));
+  document.getElementById('ta-scope-hint').textContent='Applies to the selected date only.';
 });
 
 document.getElementById('tpl-save-btn').addEventListener('click',()=>{
