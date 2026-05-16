@@ -556,6 +556,12 @@ function renderDay(){
   }else{
     document.getElementById('visual-tl').style.display='none';
     document.getElementById('d-visual-toggle').classList.remove('d-visual-toggle-active');
+    // Restore standard list elements
+    document.getElementById('di-label').style.display=dayItems.length?'block':'none';
+    document.getElementById('di-zone').style.display='block';
+    document.getElementById('tl-div').style.display=(dayItems.length&&schedItems.length)?'block':'none';
+    document.getElementById('tl-label').style.display=schedItems.length?'block':'none';
+    document.getElementById('timeline').style.display='block';
   }
 }
 
