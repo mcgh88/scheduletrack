@@ -394,33 +394,37 @@ function autoSched(items){
   // Ensure minimum duration of 5 min for all schedule items
   si.forEach(it=>{if(!it.dur||it.dur<5)it.dur=5});
 
-  // Separate set-time items and auto items (no time set)
+  // Separate set-time items and auto items, preserving si order for autos
   const setItems=si.filter(i=>!i.autoTime&&i.time);
   const autos=si.filter(i=>i.autoTime||!i.time);
 
   // Mark autos properly
   autos.forEach(it=>{it.autoTime=true});
 
-  // Place auto items sequentially
-  // Each auto item starts after the latest ending item (set or auto) that precedes it
-  let cursor=0; // midnight fallback
+  // Build occupied intervals from set-time items
+  const occupied=setItems.map(s=>({start:t2m(s.time),end:t2m(s.time)+(s.dur||5)}));
+  occupied.sort((a,b)=>a.start-b.start);
+
+  // Place auto items sequentially, skipping over set-time blocks
+  let cursor=0;
 
   for(const it of autos){
-    // Check all set-time items and already-placed auto items
-    // to find the latest end time at or before cursor
-    let latestEnd=cursor;
+    const dur=it.dur||5;
 
-    // Check set-time items that overlap with or end after cursor
-    for(const s of setItems){
-      const sStart=t2m(s.time);
-      const sEnd=sStart+(s.dur||5);
-      // If this set-time item started before where we'd place this auto
-      // and ends later, push cursor forward
-      if(sStart<=latestEnd&&sEnd>latestEnd)latestEnd=sEnd;
+    // Advance cursor past any occupied intervals it overlaps with
+    let moved=true;
+    while(moved){
+      moved=false;
+      for(const occ of occupied){
+        if(cursor<occ.end&&(cursor+dur)>occ.start){
+          cursor=occ.end;
+          moved=true;
+        }
+      }
     }
 
-    it.time=m2t(latestEnd);
-    cursor=latestEnd+(it.dur||5);
+    it.time=m2t(cursor);
+    cursor+=dur;
   }
 
   // Sort all scheduled items by time
@@ -527,7 +531,7 @@ function renderDay(){
   // Events
   document.querySelectorAll('.chk').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();const items=getDay(curDate);const it=items.find(x=>x.id===b.dataset.id);if(it){it.done=!it.done;setDay(curDate,items);renderDay()}}));
   document.querySelectorAll('.di-nm,.tb-body').forEach(el=>el.addEventListener('click',()=>openEdit(curDate,el.dataset.id)));
-  document.querySelectorAll('.tb-drag').forEach(h=>h.addEventListener('touchstart',e=>startDrag(e,'sched'),{passive:false}));
+  document.querySelectorAll('.tb-drag').forEach(h=>{h.addEventListener('touchstart',e=>startDrag(e,'sched'),{passive:false});h.addEventListener('mousedown',e=>startDragMouse(e,'sched'))});
 
   // If visual mode is active, hide list and show visual
   if(visualMode){
@@ -829,13 +833,45 @@ document.getElementById('e-del').addEventListener('click',()=>{
   items.splice(idx,1);setDay(editDate,autoSched(items));hideM('m-edit');renderDay();toast('Deleted');
 });
 
-// DRAG
+// DRAG — shared logic
+function finishDrag(idx,dropY){
+  const container=document.getElementById('timeline');
+  const all=Array.from(container.querySelectorAll('.tb'));
+  let drop=idx;
+  for(let i=0;i<all.length;i++){
+    const r=all[i].getBoundingClientRect();
+    const mid=r.top+r.height/2;
+    if(dropY<mid){drop=i;break}
+    if(i===all.length-1)drop=all.length;
+  }
+
+  const items=getDay(curDate);
+  const di=items.filter(i=>i.dayItem);
+  const si=items.filter(i=>!i.dayItem);
+
+  // The dragged item is an auto item at schedItems index `idx`
+  const draggedItem=si[idx];
+  if(!draggedItem||!draggedItem.autoTime)return;
+
+  // Remove dragged from schedule list
+  si.splice(idx,1);
+
+  // Clamp drop position
+  if(drop>si.length)drop=si.length;
+  if(drop>idx)drop--; // adjust for removal
+
+  // Insert at new position
+  si.splice(drop,0,draggedItem);
+
+  setDay(curDate,autoSched([...di,...si]));
+  renderDay();
+}
+
+// Touch drag
 function startDrag(e,zone){
   e.preventDefault();
   const handle=e.currentTarget;const idx=parseInt(handle.dataset.idx);
   const card=handle.closest('.tb');
-  const container=document.getElementById('timeline');
-  const sel='.tb';
   const rect=card.getBoundingClientRect();const touch=e.touches[0];
   const ghost=card.cloneNode(true);
   ghost.style.cssText=`position:fixed;width:${rect.width}px;left:${rect.left}px;top:${rect.top}px;z-index:500;pointer-events:none;opacity:.9;box-shadow:0 8px 32px rgba(0,0,0,.5);transform:scale(1.03);transition:none`;
@@ -845,26 +881,30 @@ function startDrag(e,zone){
   const onEnd=ev=>{
     document.removeEventListener('touchmove',onMove);document.removeEventListener('touchend',onEnd);
     ghost.remove();card.style.opacity='';
-    const all=Array.from(container.querySelectorAll(sel));const t=ev.changedTouches[0];let drop=idx;
-    for(let i=0;i<all.length;i++){const r=all[i].getBoundingClientRect();if(t.clientY>=r.top&&t.clientY<=r.bottom){drop=i;break}if(i===all.length-1&&t.clientY>r.bottom)drop=all.length-1}
-    if(drop===idx)return;
-    const items=getDay(curDate);const di=items.filter(i=>i.dayItem);const si=items.filter(i=>!i.dayItem);
-    // Only reorder auto items among themselves, keep set-time items in place
-    const autoItems=si.filter(i=>i.autoTime);
-    const setItems=si.filter(i=>!i.autoTime);
-    // Map idx/drop to auto items array
-    const autoIdx=autoItems.indexOf(si[idx]);
-    const dropTarget=si[drop];
-    let autoDrop=dropTarget&&dropTarget.autoTime?autoItems.indexOf(dropTarget):autoIdx;
-    if(autoIdx<0)return;
-    const[m]=autoItems.splice(autoIdx,1);autoItems.splice(autoDrop,0,m);
-
-    const reordered=[...di,...setItems,...autoItems];
-    setDay(curDate,autoSched(reordered));
-    renderDay();
+    finishDrag(idx,ev.changedTouches[0].clientY);
   };
   document.addEventListener('touchmove',onMove,{passive:false});
   document.addEventListener('touchend',onEnd);
+}
+
+// Mouse drag (desktop support)
+function startDragMouse(e,zone){
+  e.preventDefault();
+  const handle=e.currentTarget;const idx=parseInt(handle.dataset.idx);
+  const card=handle.closest('.tb');
+  const rect=card.getBoundingClientRect();
+  const ghost=card.cloneNode(true);
+  ghost.style.cssText=`position:fixed;width:${rect.width}px;left:${rect.left}px;top:${rect.top}px;z-index:500;pointer-events:none;opacity:.9;box-shadow:0 8px 32px rgba(0,0,0,.5);transform:scale(1.03);transition:none`;
+  document.body.appendChild(ghost);card.style.opacity='.3';
+  const oy=e.clientY-rect.top;
+  const onMove=ev=>{ev.preventDefault();ghost.style.top=(ev.clientY-oy)+'px'};
+  const onEnd=ev=>{
+    document.removeEventListener('mousemove',onMove);document.removeEventListener('mouseup',onEnd);
+    ghost.remove();card.style.opacity='';
+    finishDrag(idx,ev.clientY);
+  };
+  document.addEventListener('mousemove',onMove);
+  document.addEventListener('mouseup',onEnd);
 }
 
 // DAY NAV
