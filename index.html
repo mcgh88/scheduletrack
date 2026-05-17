@@ -216,7 +216,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 <!-- DAY -->
 <div class="panel active" id="p-day">
   <div class="date-nav"><button id="prev-day">‹ Prev</button><span class="date-label today-hl" id="day-lbl"></span><button id="next-day">Next ›</button></div>
-  <div class="day-actions"><button class="btn btn-sm btn-outline" id="d-import">Import</button><button class="btn btn-sm btn-danger" id="d-clear-day">Clear Day</button><button class="btn btn-sm btn-outline" id="d-visual-toggle" style="margin-left:auto">▎▌▐ Visual</button></div>
+  <div class="day-actions"><button class="btn btn-sm btn-outline" id="d-import">Import</button><button class="btn btn-sm btn-danger" id="d-clear-day">Clear Day</button><button class="btn btn-sm btn-outline" id="d-clear-done" style="color:var(--green);border-color:var(--green)">✓ Clear Done</button><button class="btn btn-sm btn-outline" id="d-visual-toggle" style="margin-left:auto">▎▌▐ Visual</button></div>
   <div class="add-area" id="add-area">
     <div class="aa-row"><input type="text" class="aa-name" id="a-name" placeholder="Item name..." maxlength="80"><button class="add-btn" id="a-btn">+</button><button class="clr-add-btn" id="a-clr">Clear</button></div>
     <div class="aa-row">
@@ -386,57 +386,6 @@ let addDayM=false,addCol='none';
 let editId=null,editDate=null,editDayM=false,editCol='none';
 let applyTplIdx=null;
 
-// AUTO-SCHEDULE
-function autoSched(items){
-  const di=items.filter(i=>i.dayItem);
-  const si=items.filter(i=>!i.dayItem);
-
-  // Ensure minimum duration of 5 min for all schedule items
-  si.forEach(it=>{if(!it.dur||it.dur<5)it.dur=5});
-
-  // Separate set-time items and auto items, preserving si order for autos
-  const setItems=si.filter(i=>!i.autoTime&&i.time);
-  const autos=si.filter(i=>i.autoTime||!i.time);
-
-  // Mark autos properly
-  autos.forEach(it=>{it.autoTime=true});
-
-  // Build occupied intervals from set-time items
-  const occupied=setItems.map(s=>({start:t2m(s.time),end:t2m(s.time)+(s.dur||5)}));
-  occupied.sort((a,b)=>a.start-b.start);
-
-  // Place auto items sequentially, skipping over set-time blocks
-  let cursor=0;
-
-  for(const it of autos){
-    const dur=it.dur||5;
-
-    // Advance cursor past any occupied intervals it overlaps with
-    let moved=true;
-    while(moved){
-      moved=false;
-      for(const occ of occupied){
-        if(cursor<occ.end&&(cursor+dur)>occ.start){
-          cursor=occ.end;
-          moved=true;
-        }
-      }
-    }
-
-    it.time=m2t(cursor);
-    cursor+=dur;
-  }
-
-  // Sort all scheduled items by time
-  const allSched=[...setItems,...autos];
-  allSched.sort((a,b)=>{
-    const at=a.time?t2m(a.time):99999;
-    const bt=b.time?t2m(b.time):99999;
-    return at-bt;
-  });
-
-  return[...di,...allSched];
-}
 
 // TABS
 function switchTab(name){
@@ -837,34 +786,117 @@ document.getElementById('e-del').addEventListener('click',()=>{
 function finishDrag(idx,dropY){
   const container=document.getElementById('timeline');
   const all=Array.from(container.querySelectorAll('.tb'));
-  let drop=idx;
+
+  // Determine visual drop position among all rendered cards
+  let visualDrop=all.length; // default: end
   for(let i=0;i<all.length;i++){
     const r=all[i].getBoundingClientRect();
     const mid=r.top+r.height/2;
-    if(dropY<mid){drop=i;break}
-    if(i===all.length-1)drop=all.length;
+    if(dropY<mid){visualDrop=i;break}
   }
 
   const items=getDay(curDate);
   const di=items.filter(i=>i.dayItem);
   const si=items.filter(i=>!i.dayItem);
 
-  // The dragged item is an auto item at schedItems index `idx`
   const draggedItem=si[idx];
   if(!draggedItem||!draggedItem.autoTime)return;
 
-  // Remove dragged from schedule list
+  // Remove dragged item from si
   si.splice(idx,1);
 
-  // Clamp drop position
-  if(drop>si.length)drop=si.length;
-  if(drop>idx)drop--; // adjust for removal
+  // The visual card list maps 1:1 to the original si array (before removal).
+  // We need to convert visualDrop (index in the rendered card list) to an
+  // insertion index in the si array (after the dragged item was removed).
+  // Account for the removed item shifting indices.
+  let insertIdx;
+  if(visualDrop<=idx){
+    // Dropped before or at original position — visualDrop maps directly
+    // since removal happened after this index
+    insertIdx=visualDrop;
+  }else{
+    // Dropped after original position — subtract 1 because the removal
+    // shifted everything down
+    insertIdx=visualDrop-1;
+  }
 
-  // Insert at new position
-  si.splice(drop,0,draggedItem);
+  // Clamp
+  if(insertIdx<0)insertIdx=0;
+  if(insertIdx>si.length)insertIdx=si.length;
+
+  si.splice(insertIdx,0,draggedItem);
 
   setDay(curDate,autoSched([...di,...si]));
   renderDay();
+}
+
+// AUTO-SCHEDULE with drag-aware placement
+// Auto items placed into gaps defined by fixed-time neighbours in the merged order.
+// Respects array order so drag reordering across fixed items works correctly.
+function autoSched(items){
+  const di=items.filter(i=>i.dayItem);
+  const si=items.filter(i=>!i.dayItem);
+
+  // Ensure minimum duration
+  si.forEach(it=>{if(!it.dur||it.dur<5)it.dur=5});
+
+  // Mark autos properly
+  si.forEach(it=>{if(it.autoTime||!it.time)it.autoTime=true});
+
+  // Preserve incoming array order — this is the user's intended sequence.
+  // We need to assign times to auto items so they sit in the correct
+  // position relative to fixed-time items AND each other.
+
+  // Step 1: Build the ordered list, keeping fixed items at their times.
+  // For each auto item, determine its "anchor" — the time after which it
+  // should be placed, based on the nearest preceding fixed-time item.
+
+  // Collect fixed-time items with their positions in the si array
+  const fixed=[];
+  si.forEach((it,i)=>{if(!it.autoTime&&it.time)fixed.push({item:it,idx:i})});
+  fixed.sort((a,b)=>t2m(a.item.time)-t2m(b.item.time));
+
+  // Build occupied intervals from fixed items
+  const occupied=fixed.map(f=>({start:t2m(f.item.time),end:t2m(f.item.time)+(f.item.dur||5)}));
+
+  // Step 2: Walk through si in order. Maintain a cursor.
+  // When we hit a fixed item, jump cursor to after it (if cursor is before it).
+  // When we hit an auto item, place it at cursor, skipping over any occupied blocks.
+  let cursor=0;
+
+  for(let i=0;i<si.length;i++){
+    const it=si[i];
+    if(!it.autoTime&&it.time){
+      // Fixed item — advance cursor past it if needed
+      const end=t2m(it.time)+(it.dur||5);
+      if(cursor<end)cursor=end;
+      continue;
+    }
+    // Auto item — find next free slot at or after cursor
+    const dur=it.dur||5;
+    let moved=true;
+    while(moved){
+      moved=false;
+      for(const occ of occupied){
+        if(cursor<occ.end&&(cursor+dur)>occ.start){
+          cursor=occ.end;
+          moved=true;
+        }
+      }
+    }
+    it.time=m2t(cursor);
+    cursor+=dur;
+  }
+
+  // Sort all by time for display
+  const allSched=[...si];
+  allSched.sort((a,b)=>{
+    const at=a.time?t2m(a.time):99999;
+    const bt=b.time?t2m(b.time):99999;
+    return at-bt;
+  });
+
+  return[...di,...allSched];
 }
 
 // Touch drag
@@ -920,6 +952,13 @@ document.getElementById('d-clear-day').addEventListener('click',()=>{
   if(confirm('Clear all items (day items + schedule) for '+fDate(curDate)+'?')){
     setDay(curDate,[]);renderDay();toast('Day cleared');
   }
+});
+document.getElementById('d-clear-done').addEventListener('click',()=>{
+  const items=getDay(curDate);const done=items.filter(i=>i.done);
+  if(!done.length){toast('No completed items');return}
+  const remaining=items.filter(i=>!i.done);
+  setDay(curDate,autoSched(remaining));renderDay();
+  toast(done.length+' completed item'+(done.length!==1?'s':'')+' cleared');
 });
 document.getElementById('dimp-x').addEventListener('click',()=>hideM('m-dimp'));
 document.getElementById('dimp-ok').addEventListener('click',()=>{
