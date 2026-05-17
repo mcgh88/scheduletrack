@@ -89,11 +89,8 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .tb.done .tb-nm{text-decoration:line-through}
 .tb-drag{cursor:grab;padding:2px;display:flex;align-items:center;touch-action:none;flex-shrink:0;opacity:.6}
 .tb-drag svg{width:14px;height:14px}
-.tb-pin{width:26px;height:26px;border:none;background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;opacity:.5;transition:opacity .15s}
-.tb-pin.pinned{opacity:1}
-.tb-pin svg{width:16px;height:16px}
 .tb-time{font-family:var(--mono);font-size:11px;font-weight:600;min-width:52px;padding-top:2px;display:flex;flex-direction:column;gap:2px}
-.tb-time .tb-al{font-size:9px;opacity:.5}
+.tb-time.auto-time span{background:rgba(168,85,247,.25);padding:1px 5px;border-radius:4px}
 .tb-body{flex:1;min-width:0}
 .tb-nm{font-family:var(--mono);font-size:13px;word-break:break-word}
 .tb-dur{font-size:11px;opacity:.6;margin-top:2px;font-family:var(--mono)}
@@ -185,7 +182,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .vt-track{flex:1;position:relative;border-left:1px solid rgba(255,255,255,.08)}
 .vt-hour-line{position:absolute;left:0;right:0;border-top:1px solid rgba(255,255,255,.05);pointer-events:none}
 .vt-hour-line.on-hour{border-top-color:rgba(255,255,255,.1)}
-.vt-block{position:absolute;left:4px;right:4px;border-radius:6px;padding:6px 8px;overflow:hidden;cursor:pointer;transition:opacity .15s,box-shadow .15s;display:flex;flex-direction:column;justify-content:flex-start;min-height:18px;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.vt-block{position:absolute;border-radius:6px;padding:6px 8px;overflow:hidden;cursor:pointer;transition:opacity .15s,box-shadow .15s;display:flex;flex-direction:column;justify-content:flex-start;min-height:18px;box-shadow:0 1px 3px rgba(0,0,0,.25)}
 .vt-block:hover{box-shadow:0 2px 10px rgba(0,0,0,.4)}
 .vt-block.vt-done{opacity:.45}
 .vt-block.vt-done .vt-name{text-decoration:line-through}
@@ -219,22 +216,19 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 <!-- DAY -->
 <div class="panel active" id="p-day">
   <div class="date-nav"><button id="prev-day">‹ Prev</button><span class="date-label today-hl" id="day-lbl"></span><button id="next-day">Next ›</button></div>
-  <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><label style="font-family:var(--mono);font-size:11px;color:var(--text-dim);white-space:nowrap">Day starts</label><input type="time" id="day-start-time" value="05:00" style="background:var(--bg);border:1px solid var(--text-faint);color:var(--text);font-family:var(--mono);font-size:13px;padding:6px 8px;border-radius:8px;outline:none;width:100px"></div>
   <div class="day-actions"><button class="btn btn-sm btn-outline" id="d-import">Import</button><button class="btn btn-sm btn-danger" id="d-clear-day">Clear Day</button><button class="btn btn-sm btn-outline" id="d-visual-toggle" style="margin-left:auto">▎▌▐ Visual</button></div>
   <div class="add-area" id="add-area">
     <div class="aa-row"><input type="text" class="aa-name" id="a-name" placeholder="Item name..." maxlength="80"><button class="add-btn" id="a-btn">+</button><button class="clr-add-btn" id="a-clr">Clear</button></div>
     <div class="aa-row">
       <div class="tog-wrap"><span>Day Item</span><div class="tog" id="a-day"></div></div>
-      <div class="tog-wrap"><span>Override Auto-Schedule</span><div class="tog" id="a-override"></div></div>
     </div>
     <div class="aa-row">
       <label style="font-family:var(--mono);font-size:11px;color:var(--text-dim)">Dur</label>
       <div class="dur-field"><input type="time" id="a-dur" value=""><span class="dur-label" id="a-dur-lbl">—</span></div>
-      <label style="font-family:var(--mono);font-size:11px;color:var(--text-dim)">Start</label>
-      <input type="time" class="aa-time" id="a-time" value="" disabled>
+      <label style="font-family:var(--mono);font-size:11px;color:var(--text-dim)">Time</label>
+      <input type="time" class="aa-time" id="a-time" value="">
       <div style="position:relative;flex-shrink:0"><div class="cp-trigger" id="a-cp-trig"></div><div class="cp-popup" id="a-cp-pop"></div></div>
     </div>
-    <div class="aa-row" id="a-dur-info" style="display:none"><span style="font-family:var(--mono);font-size:10px;color:var(--text-faint)">(informational — does not affect scheduling)</span></div>
   </div>
   <div class="section-label" id="di-label" style="display:none">All Day</div>
   <div class="day-items-zone" id="di-zone"></div>
@@ -272,7 +266,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
   <div class="sg"><h3>// multi-date import / export</h3><p style="font-size:11px;color:var(--text-dim);margin-bottom:8px;line-height:1.5">Import: paste lines as <code style="color:var(--accent)">date | item name</code><br>Dates: 5/15, 05/15, 5/15/2026, 2026-05-15. Items land as day items.<br>Export: copies all day items across all dates.</p><div style="display:flex;gap:8px"><button class="btn btn-sm btn-outline" id="mi-btn">Paste Import</button><button class="btn btn-sm btn-outline" id="me-btn">Copy Export</button></div></div>
   <div class="sg"><h3>// backup</h3><div class="sr"><label>Full JSON backup</label><button class="btn btn-sm btn-outline" id="je-btn">Download JSON</button></div><div class="sr"><label>Restore from file</label><button class="btn btn-sm btn-outline" id="ji-btn">Upload JSON</button><input type="file" id="ji-file" accept=".json" style="display:none"></div></div>
   <div class="sg" style="margin-top:24px"><h3>// danger</h3><div class="sr"><label>Clear everything</label><button class="btn btn-sm btn-danger" id="clr-btn">Reset All</button></div></div>
-  <div style="text-align:center;padding:16px 0 4px;font-family:var(--mono);font-size:11px;color:var(--text-faint)">DayPlan v3</div>
+  <div style="text-align:center;padding:16px 0 4px;font-family:var(--mono);font-size:11px;color:var(--text-faint)">DayPlan v4</div>
 </div>
 
 <!-- MODALS -->
@@ -283,11 +277,9 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
   <label>Name</label><input type="text" id="e-name" maxlength="80">
   <div style="display:flex;gap:12px;align-items:center;margin-bottom:10px">
     <div class="tog-wrap"><span>Day Item</span><div class="tog" id="e-day"></div></div>
-    <div class="tog-wrap"><span>Override Auto-Schedule</span><div class="tog" id="e-override"></div></div>
   </div>
-  <label>Start time</label><input type="time" id="e-time">
+  <label>Time <span id="e-time-hint" style="font-size:10px;color:var(--text-faint);font-weight:400">(leave blank to auto-schedule)</span></label><input type="time" id="e-time">
   <label id="e-dur-label">Duration</label><div class="dur-field" style="margin-bottom:10px"><input type="time" id="e-dur" value="" style="width:100%"><span class="dur-label" id="e-dur-lbl">—</span></div>
-  <div id="e-dur-info" style="display:none;margin-bottom:10px"><span style="font-family:var(--mono);font-size:10px;color:var(--text-faint)">(informational — does not affect scheduling)</span></div>
   <label>Color</label><div style="position:relative;margin-bottom:10px"><div class="cp-trigger" id="e-cp-trig"></div><div class="cp-popup" id="e-cp-pop" style="bottom:auto;top:calc(100% + 4px)"></div></div>
   <label>Move to date</label><input type="date" id="e-move">
   <label>Copy forward (days)</label><input type="number" id="e-fwd" min="0" max="365" value="0">
@@ -381,8 +373,8 @@ function p12(s){
 }
 
 // DATA
-const defStore=()=>({days:{},templates:[],dayStarts:{}});
-function getStore(){try{const r=localStorage.getItem(SK);if(!r)return defStore();const d=JSON.parse(r);if(!d.days)d.days={};if(!d.templates)d.templates=[];if(!d.dayStarts)d.dayStarts={};return d}catch{return defStore()}}
+const defStore=()=>({days:{},templates:[]});
+function getStore(){try{const r=localStorage.getItem(SK);if(!r)return defStore();const d=JSON.parse(r);if(!d.days)d.days={};if(!d.templates)d.templates=[];return d}catch{return defStore()}}
 function save(){localStorage.setItem(SK,JSON.stringify(store))}
 function getDay(ds){return store.days[ds]||[]}
 function setDay(ds,items){if(!items.length)delete store.days[ds];else store.days[ds]=items;save()}
@@ -390,39 +382,49 @@ function setDay(ds,items){if(!items.length)delete store.days[ds];else store.days
 let store=getStore();
 let curDate=todayStr();
 let curTab=0;
-let addOverride=false,addDayM=false,addCol='none';
-let editId=null,editDate=null,editOverride=false,editDayM=false,editCol='none';
+let addDayM=false,addCol='none';
+let editId=null,editDate=null,editDayM=false,editCol='none';
 let applyTplIdx=null;
 
 // AUTO-SCHEDULE
-function getDayStart(){
-  return store.dayStarts&&store.dayStarts[curDate]!=null?store.dayStarts[curDate]:300;
-}
-function setDayStart(ds,mins){
-  if(!store.dayStarts)store.dayStarts={};
-  store.dayStarts[ds]=mins;save();
-}
 function autoSched(items){
   const di=items.filter(i=>i.dayItem);
   const si=items.filter(i=>!i.dayItem);
 
-  // Separate override (pinned) items and auto items
-  const overrides=si.filter(i=>i.override);
-  const autos=si.filter(i=>!i.override);
+  // Ensure minimum duration of 5 min for all schedule items
+  si.forEach(it=>{if(!it.dur||it.dur<5)it.dur=5});
 
-  // Auto items: stack by duration starting from day start time
-  // Items with no duration get 0 duration (next item starts at same time)
-  let cursor=getDayStart();
+  // Separate set-time items and auto items (no time set)
+  const setItems=si.filter(i=>!i.autoTime&&i.time);
+  const autos=si.filter(i=>i.autoTime||!i.time);
+
+  // Mark autos properly
+  autos.forEach(it=>{it.autoTime=true});
+
+  // Place auto items sequentially
+  // Each auto item starts after the latest ending item (set or auto) that precedes it
+  let cursor=0; // midnight fallback
+
   for(const it of autos){
-    // Items with no time get auto-scheduled
-    it.time=m2t(cursor);
-    it.autoTime=true;
-    cursor+=it.dur||0;
+    // Check all set-time items and already-placed auto items
+    // to find the latest end time at or before cursor
+    let latestEnd=cursor;
+
+    // Check set-time items that overlap with or end after cursor
+    for(const s of setItems){
+      const sStart=t2m(s.time);
+      const sEnd=sStart+(s.dur||5);
+      // If this set-time item started before where we'd place this auto
+      // and ends later, push cursor forward
+      if(sStart<=latestEnd&&sEnd>latestEnd)latestEnd=sEnd;
+    }
+
+    it.time=m2t(latestEnd);
+    cursor=latestEnd+(it.dur||5);
   }
 
-  // Sort all scheduled items: override items by their set time, auto items by computed time
-  // No-time items (no time and no override) go to end
-  const allSched=[...overrides,...autos];
+  // Sort all scheduled items by time
+  const allSched=[...setItems,...autos];
   allSched.sort((a,b)=>{
     const at=a.time?t2m(a.time):99999;
     const bt=b.time?t2m(b.time):99999;
@@ -480,20 +482,11 @@ function renderDay(){
   lbl.textContent=isToday?'Today — '+fDate(curDate):fDate(curDate);
   lbl.classList.toggle('today-hl',isToday);
 
-  // Per-day start time
-  const dstEl=document.getElementById('day-start-time');
-  dstEl.value=m2t(getDayStart());
-
   // Add area state
   renderCPPopup('a-cp-trig','a-cp-pop',addCol,c=>{addCol=c;renderCPPopup('a-cp-trig','a-cp-pop',addCol,c2=>{addCol=c2})});
-  document.getElementById('a-override').className='tog'+(addOverride?' on':'');
   document.getElementById('a-day').className='tog'+(addDayM?' on':'');
-  // Override: time enabled, dur disabled (but shown as informational)
-  // Auto (default): time disabled, dur enabled
-  // Day item: both disabled
-  document.getElementById('a-time').disabled=!addOverride||addDayM;
+  document.getElementById('a-time').disabled=addDayM;
   document.getElementById('a-dur').disabled=addDayM;
-  document.getElementById('a-dur-info').style.display=addOverride&&!addDayM?'flex':'none';
 
   const items=getDay(curDate);
   const dayItems=items.filter(i=>i.dayItem);
@@ -519,16 +512,15 @@ function renderDay(){
   const tl=document.getElementById('timeline');tl.innerHTML='';
   if(!dayItems.length&&!schedItems.length)tl.innerHTML='<div class="no-items">No items yet. Add one above.</div>';
 
-  const PIN_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 17v5"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"/></svg>';
-
   schedItems.forEach((item,i)=>{
     const c=item.done?{bg:'#3a3f4b',text:'#8892a4',l:true}:gc(item.color||'none');
     const d=document.createElement('div');
     d.className='tb'+(item.done?' done':'');
     d.style.background=c.bg;d.style.color=c.text;
     const durLabel=item.dur?fmtDur(item.dur):'';
-    const durInfo=item.override&&item.dur?' <span style="font-size:9px;opacity:.5">(info)</span>':'';
-    d.innerHTML=`<div class="tb-drag" data-idx="${i}">${DRAG_SVG}</div><div class="tb-time" style="color:${c.text};opacity:.7"><span>${item.time?f12(item.time):''}</span>${item.override?'<span class="tb-al">pinned</span>':''}</div><div class="tb-body" data-id="${item.id}"><div class="tb-nm">${esc(item.name)}</div>${durLabel?`<div class="tb-dur" style="color:${c.text};opacity:.6">${durLabel}${durInfo}</div>`:''}</div><button class="tb-pin${item.override?' pinned':''}" data-id="${item.id}" title="${item.override?'Pinned (override)':'Auto-scheduled'}" style="color:${c.text}">${PIN_SVG}</button><button class="chk${item.done?' on':''}" data-id="${item.id}" style="${item.done?'':'border-color:'+(c.l?'rgba(255,255,255,.25)':'rgba(0,0,0,.2)')}">${item.done?'✓':''}</button>`;
+    const isAuto=!!item.autoTime;
+    const timeClass='tb-time'+(isAuto?' auto-time':'');
+    d.innerHTML=`${isAuto?`<div class="tb-drag" data-idx="${i}">${DRAG_SVG}</div>`:'<div style="width:14px;flex-shrink:0"></div>'}<div class="${timeClass}" style="color:${c.text};opacity:.7"><span>${item.time?f12(item.time):''}</span></div><div class="tb-body" data-id="${item.id}"><div class="tb-nm">${esc(item.name)}</div>${durLabel?`<div class="tb-dur" style="color:${c.text};opacity:.6">${durLabel}</div>`:''}</div><button class="chk${item.done?' on':''}" data-id="${item.id}" style="${item.done?'':'border-color:'+(c.l?'rgba(255,255,255,.25)':'rgba(0,0,0,.2)')}">${item.done?'✓':''}</button>`;
     tl.appendChild(d);
   });
 
@@ -536,16 +528,6 @@ function renderDay(){
   document.querySelectorAll('.chk').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();const items=getDay(curDate);const it=items.find(x=>x.id===b.dataset.id);if(it){it.done=!it.done;setDay(curDate,items);renderDay()}}));
   document.querySelectorAll('.di-nm,.tb-body').forEach(el=>el.addEventListener('click',()=>openEdit(curDate,el.dataset.id)));
   document.querySelectorAll('.tb-drag').forEach(h=>h.addEventListener('touchstart',e=>startDrag(e,'sched'),{passive:false}));
-  // Pin toggle on card
-  document.querySelectorAll('.tb-pin').forEach(b=>b.addEventListener('click',e=>{
-    e.stopPropagation();const items=getDay(curDate);const it=items.find(x=>x.id===b.dataset.id);
-    if(it){
-      it.override=!it.override;
-      if(it.override){it.autoTime=false}else{it.time=null}
-      setDay(curDate,autoSched(items));renderDay();
-      toast(it.override?'Pinned':'Auto-scheduled');
-    }
-  }));
 
   // If visual mode is active, hide list and show visual
   if(visualMode){
@@ -583,7 +565,7 @@ function renderVisualTL(){
   let minMin=Infinity,maxMin=-Infinity;
   withTime.forEach(it=>{
     const s=t2m(it.time);
-    const e=s+(it.dur||15);
+    const e=s+(it.dur||5);
     if(s<minMin)minMin=s;
     if(e>maxMin)maxMin=e;
   });
@@ -593,6 +575,68 @@ function renderVisualTL(){
   const endHour=Math.min(24,Math.ceil(maxMin/60)+1);
   const totalMin=(endHour-startHour)*60;
   const totalH=totalMin*PX_PER_MIN;
+
+  // Compute overlap columns
+  // Sort by start time, then by duration descending (longer items first)
+  const sorted=[...withTime].sort((a,b)=>{
+    const diff=t2m(a.time)-t2m(b.time);
+    if(diff!==0)return diff;
+    return(b.dur||5)-(a.dur||5);
+  });
+
+  // Assign columns: for each item, find the first column where it doesn't overlap
+  const columns=[]; // array of arrays, each array is a column of items
+  const itemCols=new Map(); // item id -> {col, totalCols}
+
+  sorted.forEach(item=>{
+    const s=t2m(item.time);
+    const e=s+(item.dur||5);
+    let placed=false;
+    for(let c=0;c<columns.length;c++){
+      // Check if this item overlaps with any item in this column
+      const overlaps=columns[c].some(other=>{
+        const os=t2m(other.time);
+        const oe=os+(other.dur||5);
+        return s<oe&&e>os;
+      });
+      if(!overlaps){columns[c].push(item);itemCols.set(item.id,{col:c});placed=true;break}
+    }
+    if(!placed){columns.push([item]);itemCols.set(item.id,{col:columns.length-1})}
+  });
+
+  // Now determine totalCols for each overlap group
+  // An overlap group is a set of items that are transitively overlapping
+  function getOverlapGroup(item){
+    const s=t2m(item.time);
+    const e=s+(item.dur||5);
+    const group=new Set();
+    const queue=[item];
+    while(queue.length){
+      const cur=queue.pop();
+      if(group.has(cur.id))continue;
+      group.add(cur.id);
+      const cs=t2m(cur.time);
+      const ce=cs+(cur.dur||5);
+      sorted.forEach(other=>{
+        if(group.has(other.id))return;
+        const os=t2m(other.time);
+        const oe=os+(other.dur||5);
+        if(cs<oe&&ce>os)queue.push(other);
+      });
+    }
+    return group;
+  }
+
+  const processed=new Set();
+  sorted.forEach(item=>{
+    if(processed.has(item.id))return;
+    const group=getOverlapGroup(item);
+    // Find max column index in this group
+    let maxCol=0;
+    group.forEach(id=>{const c=itemCols.get(id);if(c.col>maxCol)maxCol=c.col});
+    const totalCols=maxCol+1;
+    group.forEach(id=>{itemCols.get(id).totalCols=totalCols;processed.add(id)});
+  });
 
   let html='<div class="vt-container" style="height:'+totalH+'px">';
   html+='<div class="vt-gutter" style="height:'+totalH+'px">';
@@ -627,10 +671,10 @@ function renderVisualTL(){
     html+='<div class="vt-now" style="top:'+ny+'px"></div>';
   }
 
-  // Blocks
+  // Blocks with column positioning
   withTime.forEach(item=>{
     const s=t2m(item.time);
-    const dur=item.dur||15; // default visual size for items without duration
+    const dur=item.dur||5;
     const y=(s-startHour*60)*PX_PER_MIN;
     const h=Math.max(dur*PX_PER_MIN,18);
     const c=item.done?{bg:'#3a3f4b',text:'#8892a4',l:true}:gc(item.color||'none');
@@ -638,24 +682,40 @@ function renderVisualTL(){
     const timeStr=f12(item.time);
     const durStr=item.dur?fmtDur(item.dur):'';
     const meta=[timeStr,durStr].filter(Boolean).join(' · ');
-    // If block is tall enough, show two lines; otherwise compact
     const showMeta=h>30;
-    html+='<div class="vt-block'+doneClass+'" data-id="'+item.id+'" style="top:'+y+'px;height:'+h+'px;background:'+c.bg+';color:'+c.text+'">';
+
+    const ci=itemCols.get(item.id);
+    const col=ci.col;
+    const totalCols=ci.totalCols;
+    const colW=100/totalCols;
+    const leftPct=col*colW;
+    const widthPct=colW;
+    const leftStyle='calc('+leftPct+'% + 2px)';
+    const widthStyle='calc('+widthPct+'% - 4px)';
+
+    html+='<div class="vt-block'+doneClass+'" data-id="'+item.id+'" style="top:'+y+'px;height:'+h+'px;background:'+c.bg+';color:'+c.text+';left:'+leftStyle+';width:'+widthStyle+';right:auto">';
     html+='<div class="vt-name">'+esc(item.name)+'</div>';
     if(showMeta)html+='<div class="vt-meta">'+meta+'</div>';
     html+='</div>';
   });
 
-  // Gap labels between items
-  const sorted=[...withTime].sort((a,b)=>t2m(a.time)-t2m(b.time));
+  // Gap labels between items (only when no overlaps in that gap region)
   for(let i=0;i<sorted.length-1;i++){
-    const endA=t2m(sorted[i].time)+(sorted[i].dur||15);
+    const endA=t2m(sorted[i].time)+(sorted[i].dur||5);
     const startB=t2m(sorted[i+1].time);
     const gap=startB-endA;
     if(gap>=15){
-      const gy=(endA-startHour*60)*PX_PER_MIN;
-      const gh=gap*PX_PER_MIN;
-      html+='<div class="vt-gap" style="top:'+gy+'px;height:'+gh+'px"><div class="vt-gap-line"></div><div class="vt-gap-label">'+fmtDur(gap)+' free</div></div>';
+      // Check no other item spans this gap
+      const gapClear=!sorted.some(it=>{
+        const is=t2m(it.time);
+        const ie=is+(it.dur||5);
+        return is<endA&&ie>startB;
+      });
+      if(gapClear){
+        const gy=(endA-startHour*60)*PX_PER_MIN;
+        const gh=gap*PX_PER_MIN;
+        html+='<div class="vt-gap" style="top:'+gy+'px;height:'+gh+'px"><div class="vt-gap-line"></div><div class="vt-gap-label">'+fmtDur(gap)+' free</div></div>';
+      }
     }
   }
 
@@ -696,13 +756,12 @@ document.getElementById('a-dur').addEventListener('change',()=>updateDurLabel('a
 document.getElementById('e-dur').addEventListener('change',()=>updateDurLabel('e-dur','e-dur-lbl'));
 
 // ADD ITEM
-document.getElementById('a-override').addEventListener('click',()=>{addOverride=!addOverride;renderDay()});
-document.getElementById('a-day').addEventListener('click',()=>{addDayM=!addDayM;if(addDayM)addOverride=false;renderDay()});
+document.getElementById('a-day').addEventListener('click',()=>{addDayM=!addDayM;renderDay()});
 document.getElementById('a-btn').addEventListener('click',doAdd);
 document.getElementById('a-name').addEventListener('keydown',e=>{if(e.key==='Enter')doAdd()});
 document.getElementById('a-clr').addEventListener('click',()=>{
   document.getElementById('a-name').value='';document.getElementById('a-dur').value='';document.getElementById('a-time').value='';
-  addOverride=false;addDayM=false;addCol='none';updateDurLabel('a-dur','a-dur-lbl');renderDay();
+  addDayM=false;addCol='none';updateDurLabel('a-dur','a-dur-lbl');renderDay();
 });
 
 function doAdd(){
@@ -711,50 +770,51 @@ function doAdd(){
   if(!name)name='Item';
   const items=getDay(curDate);
   const dur=timeToDur(document.getElementById('a-dur').value);
-  if(addDayM){items.push({id:gid(),name,dayItem:true,color:addCol,done:false,time:null,dur:null,autoTime:false,override:false})}
-  else if(addOverride){
-    const time=document.getElementById('a-time').value||null;
-    items.push({id:gid(),name,time,dur:dur||null,color:addCol,done:false,dayItem:false,autoTime:false,override:true});
+  const time=document.getElementById('a-time').value||null;
+  if(addDayM){items.push({id:gid(),name,dayItem:true,color:addCol,done:false,time:null,dur:null,autoTime:false})}
+  else if(time){
+    // Set time — item is anchored
+    items.push({id:gid(),name,time,dur:dur||5,color:addCol,done:false,dayItem:false,autoTime:false});
   }
   else{
-    items.push({id:gid(),name,time:null,dur:dur||null,color:addCol,done:false,dayItem:false,autoTime:true,override:false});
+    // Auto-schedule — no time set
+    items.push({id:gid(),name,time:null,dur:dur||5,color:addCol,done:false,dayItem:false,autoTime:true});
   }
   setDay(curDate,autoSched(items));
   // Reset
-  ne.value='';document.getElementById('a-dur').value='';document.getElementById('a-time').value='';updateDurLabel('a-dur','a-dur-lbl');addOverride=false;addDayM=false;addCol='none';
+  ne.value='';document.getElementById('a-dur').value='';document.getElementById('a-time').value='';updateDurLabel('a-dur','a-dur-lbl');addDayM=false;addCol='none';
   renderDay();toast('Item added');
 }
 
 // EDIT MODAL
 function openEdit(ds,id){
   const items=getDay(ds);const it=items.find(x=>x.id===id);if(!it)return;
-  editId=it.id;editDate=ds;editOverride=!!it.override;editDayM=!!it.dayItem;editCol=it.color||'none';
+  editId=it.id;editDate=ds;editDayM=!!it.dayItem;editCol=it.color||'none';
   document.getElementById('e-name').value=it.name;
-  document.getElementById('e-time').value=it.time||'';document.getElementById('e-time').disabled=!editOverride||editDayM;
+  document.getElementById('e-time').value=it.autoTime?'':it.time||'';
+  document.getElementById('e-time').disabled=editDayM;
   document.getElementById('e-dur').value=durToTime(it.dur||null);document.getElementById('e-dur').disabled=editDayM;
   updateDurLabel('e-dur','e-dur-lbl');
-  document.getElementById('e-override').className='tog'+(editOverride?' on':'');
   document.getElementById('e-day').className='tog'+(editDayM?' on':'');
-  document.getElementById('e-dur-info').style.display=editOverride&&!editDayM?'block':'none';
   renderCPPopup('e-cp-trig','e-cp-pop',editCol,c=>{editCol=c;renderCPPopup('e-cp-trig','e-cp-pop',editCol,c2=>{editCol=c2})});
   document.getElementById('e-move').value=ds;document.getElementById('e-fwd').value='0';
   showM('m-edit');
 }
-document.getElementById('e-override').addEventListener('click',()=>{editOverride=!editOverride;document.getElementById('e-override').className='tog'+(editOverride?' on':'');document.getElementById('e-time').disabled=!editOverride||editDayM;document.getElementById('e-dur-info').style.display=editOverride&&!editDayM?'block':'none'});
-document.getElementById('e-day').addEventListener('click',()=>{editDayM=!editDayM;document.getElementById('e-day').className='tog'+(editDayM?' on':'');document.getElementById('e-time').disabled=!editOverride||editDayM;document.getElementById('e-dur').disabled=editDayM;document.getElementById('e-dur-info').style.display=editOverride&&!editDayM?'block':'none'});
+document.getElementById('e-day').addEventListener('click',()=>{editDayM=!editDayM;document.getElementById('e-day').className='tog'+(editDayM?' on':'');document.getElementById('e-time').disabled=editDayM;document.getElementById('e-dur').disabled=editDayM});
 document.getElementById('e-cancel').addEventListener('click',()=>hideM('m-edit'));
 
 document.getElementById('e-save').addEventListener('click',()=>{
   const items=getDay(editDate);const idx=items.findIndex(x=>x.id===editId);if(idx<0)return;
   const it=items[idx];
   it.name=document.getElementById('e-name').value.trim()||it.name;
-  it.override=editOverride;it.dayItem=editDayM;it.color=editCol;
+  it.dayItem=editDayM;it.color=editCol;
   if(!editDayM){
-    if(editOverride){it.time=document.getElementById('e-time').value||it.time;it.autoTime=false}
+    const time=document.getElementById('e-time').value||null;
+    if(time){it.time=time;it.autoTime=false}
     else{it.time=null;it.autoTime=true}
-    it.dur=timeToDur(document.getElementById('e-dur').value);
+    it.dur=timeToDur(document.getElementById('e-dur').value)||5;
   }
-  else{it.time=null;it.dur=null;it.autoTime=false;it.override=false}
+  else{it.time=null;it.dur=null;it.autoTime=false}
   const moveD=document.getElementById('e-move').value;
   if(moveD&&moveD!==editDate){items.splice(idx,1);setDay(editDate,autoSched(items));const dest=getDay(moveD);dest.push(it);setDay(moveD,autoSched(dest));toast('Moved to '+fDate(moveD))}
   else setDay(editDate,autoSched(items));
@@ -789,11 +849,17 @@ function startDrag(e,zone){
     for(let i=0;i<all.length;i++){const r=all[i].getBoundingClientRect();if(t.clientY>=r.top&&t.clientY<=r.bottom){drop=i;break}if(i===all.length-1&&t.clientY>r.bottom)drop=all.length-1}
     if(drop===idx)return;
     const items=getDay(curDate);const di=items.filter(i=>i.dayItem);const si=items.filter(i=>!i.dayItem);
-    const[m]=si.splice(idx,1);si.splice(drop,0,m);
+    // Only reorder auto items among themselves, keep set-time items in place
+    const autoItems=si.filter(i=>i.autoTime);
+    const setItems=si.filter(i=>!i.autoTime);
+    // Map idx/drop to auto items array
+    const autoIdx=autoItems.indexOf(si[idx]);
+    const dropTarget=si[drop];
+    let autoDrop=dropTarget&&dropTarget.autoTime?autoItems.indexOf(dropTarget):autoIdx;
+    if(autoIdx<0)return;
+    const[m]=autoItems.splice(autoIdx,1);autoItems.splice(autoDrop,0,m);
 
-    // After reorder: rebuild auto items order, recalculate times
-    // Override items keep their set time; auto items get recalculated
-    const reordered=[...di,...si];
+    const reordered=[...di,...setItems,...autoItems];
     setDay(curDate,autoSched(reordered));
     renderDay();
   };
@@ -806,12 +872,6 @@ document.getElementById('prev-day').addEventListener('click',()=>{curDate=addDay
 document.getElementById('next-day').addEventListener('click',()=>{curDate=addDays(curDate,1);renderDay()});
 document.getElementById('day-lbl').addEventListener('click',()=>{curDate=todayStr();renderDay()});
 document.getElementById('day-back').addEventListener('click',()=>switchTab('week'));
-document.getElementById('day-start-time').addEventListener('change',()=>{
-  const v=document.getElementById('day-start-time').value;
-  setDayStart(curDate,v?t2m(v):300);
-  const items=getDay(curDate);if(items.length)setDay(curDate,autoSched(items));
-  renderDay();
-});
 
 // DAY IMPORT/EXPORT
 document.getElementById('d-import').addEventListener('click',()=>{document.getElementById('dimp-txt').value='';showM('m-dimp')});
@@ -826,10 +886,10 @@ document.getElementById('dimp-ok').addEventListener('click',()=>{
   const lines=document.getElementById('dimp-txt').value.split('\n');const items=getDay(curDate);let n=0;
   lines.forEach(line=>{const s=line.trim();if(!s)return;const parts=s.split('|').map(p=>p.trim());
     if(parts.length>=2){const name=parts[0];if(!name)return;const time=p12(parts[1]);const dur=parts[2]?parseDur(parts[2]):null;
-      if(time){items.push({id:gid(),name,time,dur,color:'none',done:false,dayItem:false,autoTime:false,override:true})}
-      else{items.push({id:gid(),name,time:null,dur,color:'none',done:false,dayItem:false,autoTime:true,override:false})}
+      if(time){items.push({id:gid(),name,time,dur:dur||5,color:'none',done:false,dayItem:false,autoTime:false})}
+      else{items.push({id:gid(),name,time:null,dur:dur||5,color:'none',done:false,dayItem:false,autoTime:true})}
     }
-    else items.push({id:gid(),name:s,time:null,dur:null,color:'none',done:false,dayItem:false,autoTime:true,override:false});n++});
+    else items.push({id:gid(),name:s,time:null,dur:5,color:'none',done:false,dayItem:false,autoTime:true});n++});
   if(!n){toast('Nothing to import');return}
   setDay(curDate,autoSched(items));hideM('m-dimp');renderDay();toast(n+' item'+(n>1?'s':'')+' imported');
 });
@@ -937,7 +997,7 @@ document.getElementById('ta-ok').addEventListener('click',()=>{
   let totalAdded=0;
   targets.forEach(td=>{
     const existing=getDay(td);
-    const ni=tpl.items.map(t=>({id:gid(),name:t.name,time:t.time,dur:t.dur,color:t.color||'none',dayItem:false,autoTime:!t.override,override:!!t.override,done:false}));
+    const ni=tpl.items.map(t=>({id:gid(),name:t.name,time:t.time,dur:t.dur||5,color:t.color||'none',dayItem:false,autoTime:!t.time,done:false}));
     setDay(td,autoSched([...existing,...ni]));
     totalAdded+=ni.length;
   });
@@ -961,7 +1021,7 @@ document.getElementById('tn-x').addEventListener('click',()=>hideM('m-tname'));
 document.getElementById('tn-ok').addEventListener('click',()=>{
   const name=document.getElementById('tn-input').value.trim();if(!name){toast('Enter a name');return}
   const src=document.getElementById('tpl-src').value||curDate;
-  const items=getDay(src).filter(t=>!t.dayItem).map(t=>({name:t.name,time:t.time,dur:t.dur,color:t.color,dayItem:false,override:!!t.override}));
+  const items=getDay(src).filter(t=>!t.dayItem).map(t=>({name:t.name,time:t.autoTime?null:t.time,dur:t.dur,color:t.color,dayItem:false}));
   if(!items.length){toast('No schedule items on '+fDate(src));return}
   store.templates.push({name,items});save();hideM('m-tname');renderTpl();toast('Template saved');
 });
@@ -973,7 +1033,7 @@ document.getElementById('tn-ok').addEventListener('click',()=>{
 document.getElementById('gen-hol').addEventListener('click',()=>{
   const yr=parseInt(document.getElementById('hol-yr').value);if(!yr||yr<2020||yr>2100){toast('Invalid year');return}
   const hols=calcHols(yr);let n=0;
-  hols.forEach(h=>{const items=getDay(h.date);if(items.some(i=>i.dayItem&&i.name===h.name))return;items.push({id:gid(),name:h.name,dayItem:true,color:'blue',done:false,time:null,dur:null,autoTime:false,override:false});setDay(h.date,items);n++});
+  hols.forEach(h=>{const items=getDay(h.date);if(items.some(i=>i.dayItem&&i.name===h.name))return;items.push({id:gid(),name:h.name,dayItem:true,color:'blue',done:false,time:null,dur:null,autoTime:false});setDay(h.date,items);n++});
   toast(n+' holiday'+(n!==1?'s':'')+' added');
 });
 
@@ -1005,7 +1065,7 @@ document.getElementById('mimp-ok').addEventListener('click',()=>{
   const lines=document.getElementById('mimp-txt').value.split('\n');let n=0;const yr=new Date().getFullYear();
   lines.forEach(line=>{const s=line.trim();if(!s)return;const parts=s.split('|').map(p=>p.trim());if(parts.length<2)return;
     const ds=flexDate(parts[0],yr);if(!ds)return;const name=parts[1];if(!name)return;
-    const items=getDay(ds);items.push({id:gid(),name,dayItem:true,color:'none',done:false,time:null,dur:null,autoTime:false,override:false});setDay(ds,items);n++});
+    const items=getDay(ds);items.push({id:gid(),name,dayItem:true,color:'none',done:false,time:null,dur:null,autoTime:false});setDay(ds,items);n++});
   hideM('m-mimp');toast(n+' item'+(n!==1?'s':'')+' imported');
 });
 
